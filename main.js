@@ -1,4 +1,3 @@
-const SHA25 = require('crypto-js/sha256');
 const SHA256 = require('crypto-js/sha256');
 
 class Block {
@@ -10,45 +9,49 @@ class Block {
         this.hash = this.calculateHash();
     }
 
-    calculateHash() {
-        return SHA256(this.index +
-            this.timestamp +
-            JSON.stringify(this.data) +
-            this.previousHash).toString();
+    calculateHash = () => {
+        return SHA256(this.index + this.timestamp + JSON.stringify(this.data) + this.previousHash).toString();
     }
 }
 
 class Blockchain {
     constructor() {
-        this.blockchain = [new Block(0, Date.now(), "Genesis Block", "0")];
+        this.chain = [new Block(0, Date.now(), "Genesis Block", "0")];
     }
 
-    getLatestBlock() {
-        return this.blockchain[this.blockchain.length - 1];
+    getLatestBlock = () => {
+        return this.chain[this.chain.length - 1];
     }
 
-    addBlock(data) {
+    addNewBlock = (data) =>{
         const latestBlock = this.getLatestBlock();
-        this.blockchain.push(new Block(latestBlock.index + 1, Date.now(), data, latestBlock.hash));
+        this.chain.push(new Block(latestBlock.index + 1, Date.now(), data, latestBlock.hash));
     }
 
-    isValid() {
-        for (let i = 1; i < this.blockchain.length; i++) {
-            const prevBlock = this.blockchain[i - 1];
-            const currentBlock = this.blockchain[i];
+    isChainValid = () => {
+        for(let i = 1; i < this.chain.length; i++){
+            const previousBlock = this.chain[i - 1];
+            const currentBlock = this.chain[i];
 
-            if (currentBlock.hash !== currentBlock.calculateHash()) return false;
+            if(currentBlock.hash !== currentBlock.calculateHash()) return false;
 
-            if (currentBlock.previousHash !== prevBlock.hash) return false;
-
-            return true;
+            if(currentBlock.previousHash !== previousBlock.hash) return false;
         }
+
+        return true;
     }
 }
 
-const newChain = new Blockchain();
+const coin = new Blockchain();
 
-newChain.addBlock({ amount: "$100" });
-newChain.addBlock({ amount: "$1000" });
+coin.addNewBlock({amount: "$100"});
+coin.addNewBlock({amount: "$200"});
 
-console.log(newChain.blockchain)
+console.log(coin.isChainValid())
+
+// tampering the chain
+coin.chain[1].data = "tampered data";
+coin.chain[1].hash = coin.chain[1].calculateHash();
+
+console.log(coin.chain)
+console.log(coin.isChainValid())
